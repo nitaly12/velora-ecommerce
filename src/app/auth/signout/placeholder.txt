@@ -1,0 +1,11 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+
+// This route handler or action is needed for the form action in profile
+// But since I used a form action path "/auth/signout", I need to create a route handler for it.
+
+// wait, I can just make this a route handler at /src/app/auth/signout/route.ts
+// or use a server action. 
+// Let's create the route handler to match the form action

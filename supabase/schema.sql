@@ -129,6 +129,13 @@ CREATE POLICY "Users can insert own cart items" ON public.cart_items FOR INSERT 
 CREATE POLICY "Users can update own cart items" ON public.cart_items FOR UPDATE USING (EXISTS (SELECT 1 FROM public.cart WHERE id = cart_items.cart_id AND user_id = auth.uid()));
 CREATE POLICY "Users can delete own cart items" ON public.cart_items FOR DELETE USING (EXISTS (SELECT 1 FROM public.cart WHERE id = cart_items.cart_id AND user_id = auth.uid()));
 
+-- Order Items: Users can insert items for their own orders (at checkout)
+CREATE POLICY "Users can insert own order items" ON public.order_items FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.orders WHERE id = order_items.order_id AND user_id = auth.uid()));
+
+-- Wishlist: Users manage their own wishlist
+CREATE POLICY "Users can view own wishlist" ON public.wishlist FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own wishlist" ON public.wishlist FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own wishlist" ON public.wishlist FOR DELETE USING (auth.uid() = user_id);
 
 -- FUNCTIONS & TRIGGERS
 -- Handle new user signup

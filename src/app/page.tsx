@@ -1,65 +1,98 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/server'
+import { ProductCard } from '@/components/features/ProductCard'
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+
+  const { data: featuredProducts } = await supabase
+    .from('products')
+    .select('*, categories(*)')
+    .eq('is_featured', true)
+    .limit(4)
+
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name, slug, image_url')
+    .order('name')
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="space-y-16 pb-16">
+      {/* Hero Section */}
+      <section className="relative bg-slate-900 px-4 py-24 sm:px-6 lg:px-8 text-center text-white overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
+        <div className="relative max-w-2xl mx-auto space-y-6">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+            Redefining Modern Elegance
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto max-w-xl text-lg text-slate-300">
+            Discover our curated collection of premium products designed to elevate your lifestyle.
+            Minimalist, functional, and timeless.
           </p>
+          <div className="flex justify-center gap-4">
+            <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100" asChild>
+              <Link href="/products">Shop Collection</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 hover:text-white" asChild>
+              <Link href="/about">Our Story</Link>
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Featured Products */}
+      <section className="container mx-auto px-4 md:px-6 space-y-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Featured Products</h2>
+          <Button variant="link" asChild>
+            <Link href="/products">View All</Link>
+          </Button>
         </div>
-      </main>
+
+        {featuredProducts && featuredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            <p className="text-slate-500">No featured products found. Check back soon!</p>
+            <p className="text-xs text-slate-400 mt-2">(Admins: Add products marked as 'is_featured')</p>
+          </div>
+        )}
+      </section>
+
+      {/* Categories from DB */}
+      <section className="container mx-auto px-4 md:px-6">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-8">Shop by Category</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {categories && categories.length > 0 ? (
+            categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.slug}`}
+                className="relative h-64 overflow-hidden rounded-2xl bg-slate-100 group"
+              >
+                {cat.image_url ? (
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style={{ backgroundImage: `url(${cat.image_url})` }} />
+                ) : (
+                  <div className="absolute inset-0 bg-slate-200" />
+                )}
+                <div className="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/40 transition-colors" />
+                <div className="absolute bottom-4 left-4">
+                  <h3 className="font-bold text-xl text-white drop-shadow">{cat.name}</h3>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500">
+              No categories yet. Admins can add them in the dashboard.
+            </div>
+          )}
+        </div>
+      </section>
     </div>
-  );
+  )
 }
