@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/context/auth-context'
 import { useWishlist } from '@/context/wishlist-context'
 import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/features/ProductCard'
 import { Heart } from 'lucide-react'
+import type { Database } from '@/types/database.types'
+
+type Product = Database['public']['Tables']['products']['Row'] & {
+    categories: Database['public']['Tables']['categories']['Row'] | null
+}
 
 type ProductRow = {
     id: string
@@ -49,11 +53,14 @@ export default function WishlistPage() {
             .from('products')
             .select('id, name, slug, price, images, categories(name)')
             .in('id', Array.from(productIds))
-            .then(({ data }) => {
-                const list = Array.isArray(data) ? data.map(normalizeProduct) : []
-                setProducts(list)
-            })
-            .finally(() => setLoading(false))
+            .then(
+                ({ data }) => {
+                    const list = Array.isArray(data) ? data.map(normalizeProduct) : []
+                    setProducts(list)
+                    setLoading(false)
+                },
+                () => setLoading(false)
+            )
     }, [user?.id, productIds])
 
     if (!user) {
@@ -95,7 +102,7 @@ export default function WishlistPage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-8">Wishlist</h1>
             <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {products.map((p) => (
-                    <ProductCard key={p.id} product={p} />
+                    <ProductCard key={p.id} product={p as Product} />
                 ))}
             </div>
         </div>
