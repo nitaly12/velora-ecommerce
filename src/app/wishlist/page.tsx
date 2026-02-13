@@ -23,14 +23,16 @@ type ProductRow = {
     categories: { name: string } | null
 }
 
-function normalizeProduct(row: {
+type ProductRowRaw = {
     id: string
     name: string
     slug: string
     price: number
     images: string[] | null
     categories?: { name: string } | { name: string }[] | null
-}): ProductRow {
+}
+
+function normalizeProduct(row: ProductRowRaw): ProductRow {
     const categories = row.categories
     const category = Array.isArray(categories) ? categories[0] ?? null : categories ?? null
     return { ...row, categories: category }
@@ -54,7 +56,7 @@ export default function WishlistPage() {
             .select('id, name, slug, price, images, categories(name)')
             .in('id', Array.from(productIds))
             .then(
-                ({ data }) => {
+                ({ data }: { data: ProductRowRaw[] | null }) => {
                     const list = Array.isArray(data) ? data.map(normalizeProduct) : []
                     setProducts(list)
                     setLoading(false)
