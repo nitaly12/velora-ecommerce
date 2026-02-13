@@ -19,6 +19,19 @@ type ProductRow = {
     categories: { name: string } | null
 }
 
+function normalizeProduct(row: {
+    id: string
+    name: string
+    slug: string
+    price: number
+    images: string[] | null
+    categories?: { name: string } | { name: string }[] | null
+}): ProductRow {
+    const categories = row.categories
+    const category = Array.isArray(categories) ? categories[0] ?? null : categories ?? null
+    return { ...row, categories: category }
+}
+
 export default function WishlistPage() {
     const { user } = useAuth()
     const { productIds } = useWishlist()
@@ -37,7 +50,8 @@ export default function WishlistPage() {
             .select('id, name, slug, price, images, categories(name)')
             .in('id', Array.from(productIds))
             .then(({ data }) => {
-                setProducts((data as ProductRow[]) ?? [])
+                const list = Array.isArray(data) ? data.map(normalizeProduct) : []
+                setProducts(list)
             })
             .finally(() => setLoading(false))
     }, [user?.id, productIds])
@@ -81,7 +95,7 @@ export default function WishlistPage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-8">Wishlist</h1>
             <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {products.map((p) => (
-                    <ProductCard key={p.id} product={p as any} />
+                    <ProductCard key={p.id} product={p} />
                 ))}
             </div>
         </div>
