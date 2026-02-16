@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import Link from 'next/link'
 import { Github } from 'lucide-react' // Using Github icon as placeholder for Google if needed, or just text
 
 export default function LoginPage() {
@@ -130,6 +131,16 @@ export default function LoginPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
+                        {view === 'sign_in' && (
+                            <div className="flex justify-end">
+                                <Link
+                                    href="/auth/forgot-password"
+                                    className="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                     {message && (

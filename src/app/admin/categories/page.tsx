@@ -1,14 +1,17 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { Plus, Pencil } from 'lucide-react'
-import { DeleteCategoryButton } from '../categories/delete-button'
+import { Plus, FolderTree, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
 export const revalidate = 0
 
 export default async function AdminCategoriesPage() {
     const supabase = await createClient()
-    const { data: categories } = await supabase.from('categories').select('*').order('name')
+
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('*, products(count)')
+        .order('name')
 
     return (
         <div className="space-y-6">
@@ -21,41 +24,34 @@ export default async function AdminCategoriesPage() {
                 </Button>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 text-slate-500">
-                        <tr>
-                            <th className="px-6 py-3 font-medium">Name</th>
-                            <th className="px-6 py-3 font-medium">Slug</th>
-                            <th className="px-6 py-3 font-medium text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {categories?.map((cat) => (
-                            <tr key={cat.id} className="hover:bg-slate-50">
-                                <td className="px-6 py-4 font-medium text-slate-900">{cat.name}</td>
-                                <td className="px-6 py-4 text-slate-600">{cat.slug}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" asChild>
-                                            <Link href={`/admin/categories/${cat.id}/edit`}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <DeleteCategoryButton categoryId={cat.id} />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        {(!categories || categories.length === 0) && (
-                            <tr>
-                                <td colSpan={3} className="px-6 py-12 text-center text-slate-500">
-                                    No categories. Create one to get started.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {categories?.map((category: any) => (
+                    <div key={category.id} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between">
+                            <div className="h-10 w-10 rounded-lg bg-slate-50 flex items-center justify-center">
+                                <FolderTree className="h-6 w-6 text-slate-400" />
+                            </div>
+                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div className="mt-4">
+                            <h3 className="font-bold text-slate-900">{category.name}</h3>
+                            <p className="text-sm text-slate-500 truncate">{category.description || 'No description'}</p>
+                        </div>
+                        <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                            <span>{category.products?.[0]?.count || 0} Products</span>
+                            <Button variant="link" className="p-0 h-auto text-xs" asChild>
+                                <Link href={`/admin/categories/${category.id}/edit`}>Edit</Link>
+                            </Button>
+                        </div>
+                    </div>
+                ))}
+                {categories?.length === 0 && (
+                    <div className="col-span-full py-12 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <p className="text-slate-500">No categories found.</p>
+                    </div>
+                )}
             </div>
         </div>
     )

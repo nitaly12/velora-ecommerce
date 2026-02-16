@@ -31,18 +31,37 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    // List of public routes that don't need authentication checks in middleware
+    const publicRoutes = [
+        '/',
+        '/products',
+        '/categories',
+        '/about',
+        '/login',
+        '/auth/forgot-password',
+        '/auth/reset-password',
+        '/faq',
+        '/shipping',
+        '/returns',
+        '/contact',
+        '/terms',
+        '/privacy',
+        '/cookies',
+    ]
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        !request.nextUrl.pathname.startsWith('/') // Public landing is fine
-    ) {
-        // If you have protected routes, handle redirection here
-        // For now, let's just refresh session. Specific route protection can be added below.
+    const isPublicRoute = publicRoutes.some(path =>
+        request.nextUrl.pathname === path ||
+        (path !== '/' && request.nextUrl.pathname.startsWith(path))
+    )
+
+    // Skip heavy auth check for public routes unless we are explicitly checking for a session
+    // We still call updateSession to handle cookie refreshes if a session EXISTS,
+    // but we can be smarter about when we FORCE a redirect.
+
+    let user = null
+    if (!isPublicRoute || request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/profile') || request.nextUrl.pathname.startsWith('/checkout')) {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
     }
 
     // Example Protected Admin Route

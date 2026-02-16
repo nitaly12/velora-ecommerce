@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
+import { Logo } from '@/components/ui/logo'
+
 export function Navbar() {
-    const { user } = useAuth()
+    const { user, profile } = useAuth()
     const { cartCount } = useCart()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -18,9 +20,8 @@ export function Navbar() {
         <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-xl">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-900">
-                    <div className="h-6 w-6 rounded-full bg-slate-900" />
-                    Velora
+                <Link href="/">
+                    <Logo size="md" />
                 </Link>
 
                 {/* Desktop Nav */}
@@ -34,6 +35,11 @@ export function Navbar() {
                     <Link href="/about" className="hover:text-slate-900 transition-colors">
                         About
                     </Link>
+                    {profile?.role === 'ADMIN' && (
+                        <Link href="/admin" className="text-purple-600 hover:text-purple-700 font-bold transition-colors">
+                            Admin
+                        </Link>
+                    )}
                 </div>
 
                 {/* Search Bar - Desktop */}
@@ -111,6 +117,15 @@ export function Navbar() {
                         >
                             Shop
                         </Link>
+                        {profile?.role === 'ADMIN' && (
+                            <Link
+                                href="/admin"
+                                className="px-2 py-2 text-purple-600 font-bold hover:text-purple-700 hover:bg-purple-50 rounded-lg"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                Admin Dashboard
+                            </Link>
+                        )}
                         <Link
                             href="/products"
                             className="px-2 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg"

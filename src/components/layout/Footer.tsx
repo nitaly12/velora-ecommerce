@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/ui/logo'
 
 export function Footer() {
     return (
@@ -9,9 +10,8 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                     {/* Brand */}
                     <div className="space-y-4">
-                        <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-900">
-                            <div className="h-6 w-6 rounded-full bg-slate-900" />
-                            Velora
+                        <Link href="/">
+                            <Logo size="md" />
                         </Link>
                         <p className="text-slate-500 text-sm leading-relaxed">
                             Experience the future of shopping with our curated collection of premium products.
@@ -24,8 +24,8 @@ export function Footer() {
                         <h3 className="font-semibold text-slate-900 mb-4">Shop</h3>
                         <ul className="space-y-2 text-sm text-slate-600">
                             <li><Link href="/products" className="hover:text-slate-900">All Products</Link></li>
-                            <li><Link href="/categories/new" className="hover:text-slate-900">New Arrivals</Link></li>
-                            <li><Link href="/categories/featured" className="hover:text-slate-900">Featured</Link></li>
+                            <li><Link href="/products" className="hover:text-slate-900">New Arrivals</Link></li>
+                            <li><Link href="/products" className="hover:text-slate-900">Featured</Link></li>
                         </ul>
                     </div>
 

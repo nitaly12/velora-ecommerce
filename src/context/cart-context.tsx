@@ -27,10 +27,10 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType>({
     items: [],
-    addItem: () => {},
-    removeItem: () => {},
-    updateQuantity: () => {},
-    clearCart: () => {},
+    addItem: () => { },
+    removeItem: () => { },
+    updateQuantity: () => { },
+    clearCart: () => { },
     cartCount: 0,
     cartTotal: 0,
     syncing: false,
@@ -52,7 +52,7 @@ function saveLocalCart(items: CartItem[]) {
     if (typeof window === 'undefined') return
     try {
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
-    } catch {}
+    } catch { }
 }
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
@@ -71,17 +71,49 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         setSyncing(true)
         try {
             const supabase = createClient()
-            let { data: cart } = await supabase.from('cart').select('id').eq('user_id', user.id).maybeSingle()
-            if (!cart) {
-                const { data: newCart, error: insertErr } = await supabase.from('cart').insert({ user_id: user.id }).select('id').single()
-                if (insertErr) throw insertErr
-                cart = newCart
+            const { data: cart, error: fetchErr } = await supabase.from('cart').select('id').eq('user_id', user.id).maybeSingle()
+
+            if (fetchErr) {
+                console.error('Error fetching cart:', fetchErr)
+                throw fetchErr
             }
-            setCartId(cart.id)
-            const { data: rows } = await supabase
+
+            let finalCartId = cart?.id
+
+            if (!finalCartId) {
+                const { data: newCart, error: insertErr } = await supabase
+                    .from('cart')
+                    .insert({ user_id: user.id })
+                    .select('id')
+                    .single()
+
+                if (insertErr) {
+                    // Handle race condition: if another request created the cart, fetch it again
+                    if (insertErr.code === '23505') { // unique violation
+                        const { data: retryCart } = await supabase.from('cart').select('id').eq('user_id', user.id).single()
+                        finalCartId = retryCart?.id
+                    } else {
+                        console.error('Error creating cart:', insertErr)
+                        throw insertErr
+                    }
+                } else {
+                    finalCartId = newCart?.id
+                }
+            }
+
+            if (!finalCartId) throw new Error('Could not retrieve or create cart')
+
+            setCartId(finalCartId)
+            const { data: rows, error: itemsErr } = await supabase
                 .from('cart_items')
                 .select('quantity, products(id, name, price, images)')
-                .eq('cart_id', cart.id)
+                .eq('cart_id', finalCartId)
+
+            if (itemsErr) {
+                console.error('Error fetching cart items:', itemsErr)
+                throw itemsErr
+            }
+
             const list: CartItem[] = (rows ?? [])
                 .filter((r: any) => r.products)
                 .map((r: any) => ({
@@ -92,8 +124,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                     quantity: r.quantity,
                 }))
             setItems(list)
-        } catch (e) {
-            console.error('Cart fetch error', e)
+        } catch (e: any) {
+            console.error('Cart fetch error details:', {
+                message: e.message,
+                code: e.code,
+                details: e.details,
+                hint: e.hint
+            })
+            console.error('Raw Cart Error:', e)
         } finally {
             setSyncing(false)
         }
@@ -123,7 +161,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                             { cart_id: cartId, product_id: newItem.id, quantity: qty },
                             { onConflict: 'cart_id,product_id' }
                         )
-                        .then(() => {})
+                        .then(() => { })
                 }
                 if (!user) saveLocalCart(next)
                 return next
@@ -142,7 +180,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                         .delete()
                         .eq('cart_id', cartId)
                         .eq('product_id', id)
-                        .then(() => {})
+                        .then(() => { })
                 }
                 if (!user) saveLocalCart(next)
                 return next
@@ -165,7 +203,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                         .update({ quantity })
                         .eq('cart_id', cartId)
                         .eq('product_id', id)
-                        .then(() => {})
+                        .then(() => { })
                 }
                 if (!user) saveLocalCart(next)
                 return next
@@ -180,7 +218,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                 .from('cart_items')
                 .delete()
                 .eq('cart_id', cartId)
-                .then(() => {})
+                .then(() => { })
         }
         setItems([])
         if (!user) saveLocalCart([])

@@ -19,6 +19,11 @@ export default async function ProfilePage() {
             <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Account</h1>
                 <div className="flex gap-2">
+                    {profile?.role === 'ADMIN' && (
+                        <Button variant="default" className="bg-purple-600 hover:bg-purple-700" asChild>
+                            <Link href="/admin">Go to Dashboard</Link>
+                        </Button>
+                    )}
                     <Button variant="outline" asChild>
                         <Link href="/profile/edit">Edit profile</Link>
                     </Button>
