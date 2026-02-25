@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { LayoutDashboard, Package, ShoppingCart, FolderTree } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, FolderTree, Star } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         { href: '/admin/products', label: 'Products', icon: Package },
         { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
         { href: '/admin/categories', label: 'Categories', icon: FolderTree },
+        { href: '/admin/reviews', label: 'Reviews', icon: Star },
     ]
 
     return (

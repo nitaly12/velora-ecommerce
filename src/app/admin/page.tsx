@@ -22,11 +22,13 @@ export default async function AdminDashboardPage() {
         { count: productsCount },
         { count: ordersCount },
         { count: categoriesCount },
+        { count: reviewsCount },
         { data: recentOrders }
     ] = await Promise.all([
         supabase.from('products').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('*', { count: 'exact', head: true }),
         supabase.from('categories').select('*', { count: 'exact', head: true }),
+        supabase.from('reviews').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('*, profiles(full_name)').order('created_at', { ascending: false }).limit(5)
     ])
 
@@ -57,6 +59,15 @@ export default async function AdminDashboardPage() {
             bg: 'bg-amber-50',
             border: 'border-amber-100',
             href: '/admin/categories'
+        },
+        {
+            label: 'Total Reviews',
+            value: reviewsCount ?? 0,
+            icon: Eye,
+            color: 'text-rose-600',
+            bg: 'bg-rose-50',
+            border: 'border-rose-100',
+            href: '/admin/reviews'
         }
     ]
 
@@ -99,7 +110,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <Link
                         key={stat.label}

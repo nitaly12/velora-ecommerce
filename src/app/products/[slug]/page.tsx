@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { AddToCartButton } from './add-to-cart-button' // Client component for interactivity
+import { ReviewSection } from './ReviewSection'
 
 export const revalidate = 60
 
@@ -79,6 +80,11 @@ export default async function ProductPage({
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Review Section */}
+            <div className="mt-24 max-w-4xl mx-auto">
+                <ReviewSection productId={product.id} />
             </div>
         </div>
     )
